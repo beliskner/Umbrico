@@ -1,0 +1,26 @@
+@inherits UmbracoViewPage<UmbricoServices.Web.UI.ViewModels.ColleagueViewModel[]>
+@if (Model.Any())
+{
+    <section class="colleagues" style="display: flex; flex-direction: row; flex-wrap: wrap; align-content: center;">
+        @foreach (var colleague in Model)
+        {
+            <article class="colleague" style="width: 33.33%; padding: 8px; border:dashed 5px #41403E;">
+                <div class="colleague-header" style="display: flex; align-items: center">
+                    <picture>
+                        <img src="@colleague.ImageUrl" alt="@colleague.Name" style="border-radius: 50%"/>
+                    </picture>
+                    <div class="colleague-info" style="margin-left: 16px;">
+                        <h3>@colleague.Name</h3>
+                        <h6>Department: @colleague.Department</h6>
+                    </div>
+                </div>
+                @if (colleague.AvailableMinutesToday.HasValue)
+                {
+                    <p>Avaiable minutes today: <span>@colleague.AvailableMinutesToday.Value</span></p>
+                }
+                <p>Is @(colleague.InTheMoodForPotjePingPong is true ? "totally" : "not") in the mood for a potje ping pong</p>
+                <p>Favorite catch phrase: @colleague.FavoriteCatchPhrase</p>
+            </article>
+        }
+    </section>
+}

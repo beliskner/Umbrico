@@ -1,0 +1,85 @@
+services:
+
+  umbricomongo:
+    image: "mongo"
+    container_name: "umbricomongo"
+    ports:
+      - 27017:27017
+    volumes:
+      - ~/apps/mongo:/data/db
+    environment:
+      - MONGO_INITDB_DATABASE=umbricomongo
+    networks:
+      - umbriconet
+
+  # This is the database container. The exposed volume means that the SQL DATA and LOG files
+  # are stored off the container, in case the container is restarted.
+  umbricodata:
+    container_name: umbricodata
+    build:
+      context: ./UmbricoData
+    ports:
+     - "1433:1433"
+     - "1434:1434"
+    volumes:
+     - umb_database:/var/opt/mssql
+    networks:
+      - umbriconet
+
+  # This is the web container. It exposes the port 80, and stored media and Umbraco logs on
+  # a volume so they are accessable outside the container.
+  umbricoweb:
+    container_name: umbricoweb
+    build:
+      context: ./UmbricoServices.Web.UI
+    volumes:
+      - umb_media:/app/wwwroot/media
+      - umb_logs:/app/umbraco/Logs
+    restart: always
+    environment:
+     - ASPNETCORE_ENVIRONMENT=Production
+    # This is the external port the website will be visible from : http://localhost:5080/
+    # The Umbraco URL is : http://localhost:5080/umbraco
+    ports:
+      - "5080:80"
+    depends_on:
+      - umbricodata
+    networks:
+      - umbriconet
+  
+  umbricocolleagues:
+    container_name: umbricocolleagues
+    build:
+      context: ./UmbricoServices.Colleague.API
+    restart: always
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+    ports:
+      - "42100:80"
+    depends_on:
+      - umbricomongo
+    networks:
+      - umbriconet
+  
+  umbricoweather:
+    container_name: umbricoweather
+    build:
+      context: ./UmbricoServices.Weather.API
+    restart: always
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+    ports:
+      - "42200:80"
+    depends_on:
+      - umbricomongo
+    networks:
+      - umbriconet
+
+volumes:
+  umb_media:
+  umb_logs:
+  umb_database:
+
+# This is the network that the containers will be on, and will ONLY contain the containers from the application
+networks:
+  umbriconet:

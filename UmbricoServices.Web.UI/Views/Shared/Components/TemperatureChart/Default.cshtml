@@ -1,0 +1,6 @@
+@using UmbricoServices.Web.UI.Views.Shared.Blazor
+@inherits UmbracoViewPage<UmbricoServices.Web.UI.ViewModels.LocalWeatherViewModel[]>
+@if (Model.Any())
+{
+    <component type="typeof(LineChart)" render-mode="ServerPrerendered" param-WeatherModels="Model" />
+}

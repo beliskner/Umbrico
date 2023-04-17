@@ -1,0 +1,49 @@
+@using Syncfusion.Blazor.Charts
+@using UmbricoServices.Web.UI.ViewModels
+@using System.Dynamic
+<div class="control-section" align='center'>
+    <SfChart Title="Last reported city temperatures" Width="@Width">
+        <ChartArea><ChartAreaBorder Width="0"></ChartAreaBorder></ChartArea>
+        <ChartPrimaryXAxis ValueType="Syncfusion.Blazor.Charts.ValueType.Category" EdgeLabelPlacement="EdgeLabelPlacement.Shift">
+            <ChartAxisMajorGridLines Width="0"></ChartAxisMajorGridLines>
+        </ChartPrimaryXAxis>
+        <ChartPrimaryYAxis Title="Degrees in Celsius" Minimum="-10" Maximum="40" Interval="10">
+            <ChartAxisLineStyle Width="0"></ChartAxisLineStyle>
+            <ChartAxisMajorTickLines Width="0"></ChartAxisMajorTickLines>
+        </ChartPrimaryYAxis>
+        <ChartTooltipSettings Enable="true"></ChartTooltipSettings>
+        <ChartSeriesCollection>
+            @foreach (var entry in Data.FirstOrDefault().Select(x => x.Key).Where(p => p is not "ReportIndex"))
+            {
+                var canFindCityIndex = int.TryParse(entry, out var cityIndex);
+                <ChartSeries DataSource="@Data" Name="@WeatherModels[cityIndex].City" XName="ReportIndex" Width="2"
+                             Opacity="1" YName="@entry" Type="ChartSeriesType.Line">
+                    <ChartMarker Visible="true" Width="7" Height="7" IsFilled="true" Shape="@((ChartShape)cityIndex)">
+                    </ChartMarker>
+                </ChartSeries>
+            }
+        </ChartSeriesCollection>
+        <ChartLegendSettings EnableHighlight="true"></ChartLegendSettings>
+    </SfChart>
+</div>
+@code{
+    [Parameter]
+    public LocalWeatherViewModel[] WeatherModels { get; set; }
+    private List<ExpandoObject> Data { get; set; }
+    private string Width { get; set; } = "90%";
+
+    protected override void OnInitialized()
+    {
+        var shortestReportAmount = WeatherModels.Select(x => x.Temperatures).Select(x => x.Length).Min();
+        Data = Enumerable.Range(1, shortestReportAmount).Select(x =>
+        {
+            var d = new ExpandoObject();
+            d.TryAdd("ReportIndex", x);
+            for (var i = 0; i < WeatherModels.Length; i++)
+            {
+                d.TryAdd(i.ToString(), WeatherModels[i].Temperatures[x-1]);
+            }
+            return d;
+        }).ToList();
+    }
+}
